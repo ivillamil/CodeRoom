@@ -1,0 +1,99 @@
+<!DOCTYPE html />
+<html lang="en">
+<head>
+	<title>Class Room</title>
+	<link rel="stylesheet" href="style.css" />
+	<link rel="stylesheet" href="highlighter/default.css" />
+</head>
+<body>
+
+	<div class="container grid">
+		<form>
+			<h2>HTML</h2>
+			<pre id="html" contenteditable class="prettyprint"></pre>
+
+			<h2>CSS</h2>
+			<pre id="css" contenteditable class="prettyprint lang-css"></pre>
+		</form>
+	</div>
+
+	<div class="output grid">
+		<iframe></iframe>
+	</div>
+
+	<script src="http://192.168.1.84:8000/socket.io/socket.io.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>	
+	<script src="highlighter/prettify.js"></script>	
+	<script>
+	;(function($){
+
+		socket = io.connect('http://192.168.1.84:8000');
+
+		$('.grid').height($(window).height());
+
+
+		var frame = $('iframe'),
+			contents = frame.contents(),
+			body = contents.find('body'),
+			styleTag = contents
+						.find('head')
+						.append('<style></style>')
+						.children('style'),
+			htmlArea = $('#html'),
+			cssArea = $('#css');
+
+		$('pre').on('focus',function(e){
+			var $this = $(this);				
+
+			$this.keyup(function(){
+				if( $this.attr('id') === 'html') {
+					body.html($this.text());
+					updatesocket('html', $this.text());
+				} else {
+					styleTag.text($this.text());
+					updatesocket('css', $this.text());
+				}
+
+			});
+
+			/*$this.keydown(function(e){
+				if(e.keyCode === 9){
+										
+					var str = "    ";
+					
+					var range, node;
+				    if (window.getSelection && window.getSelection().getRangeAt) {
+				        range = window.getSelection().getRangeAt(0);
+				        node = range.createContextualFragment(str);
+				        range.insertNode(node);
+				    } else if (document.selection && document.selection.createRange)
+				        document.selection.createRange().pasteHTML(str);				   
+
+					e.preventDefault();					
+				}
+				
+			});*/
+
+			prettyPrint();			
+		});
+
+		socket.on('html', function(data){
+			htmlArea.text(data.html);
+			body.html(data.html);
+		});
+
+		socket.on('css', function(data){ 
+			cssArea.text(data.css);
+			styleTag.text(data.css);
+		});
+
+		var  updatesocket = function( contentType, data ) {
+			socket.emit(contentType, data);
+		}	
+			
+		prettyPrint();			
+	})(jQuery);
+	</script>
+
+</body>
+</html>

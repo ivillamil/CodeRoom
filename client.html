@@ -1,0 +1,106 @@
+<html>
+   <head>
+      <title>A Socket IO test</title>
+      <style rel="stylesheet">
+         body{ 
+            font-family: courier new; 
+            background: #f3f3f3;
+            color: #333;
+         }
+
+         input#msg{
+            display: block;
+            width: 400px;
+            padding: 5px 2px;
+            font-size: .8em;
+            display: block;
+            border: none;
+         }
+
+         p#data_recieved{
+            background: white;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            width: 100%;
+            border: 1px solid #ddd;
+            font-size: .7em;
+            padding: 10px;
+            height: 300px;
+            overflow: auto;
+         }
+      </style>
+   </head>
+   <body>
+      <input type="text" id="msg" size="3" /><button>Click me</button>
+      <p id="log"></p>
+      <p id="data_recieved"></p>
+
+   <script src="http://localhost:8000/socket.io/socket.io.js"></script>
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+   <script>
+
+   (function($){
+
+      var chat = {
+         name: '',
+         socket: '',
+
+         initialize: function() {
+            var chat = this;
+
+            chat.socket = io.connect('http://localhost:8000');
+
+            $("button").on('click',chat.updateLog);
+            $("input").on('keypress',function(e){
+               if(e.keyCode === 13)
+                  chat.updateLog(e);
+            });
+
+            while(chat.name === '')
+               chat.name = prompt("Ecoge un nickname","");
+
+            chat.socket.emit('register', chat.name);
+
+            chat.socket.on('chat',function(data){
+               chat.updateChat(data);
+            });
+         },
+
+         updateLog: function(e) {
+            e.preventDefault();
+
+            $("p#log").html('sent message: ' + $("input#msg").val());
+            chat.socket.emit('chat', $("input#msg").val());
+
+            $("p#data_recieved").append("<br>\r\n" + chat.name + ': ' + $("input#msg").val());
+            $("input#msg").val('');
+
+            var chatArea = document.getElementById('data_recieved');
+            chatArea.scrollTop = chatArea.scrollHeight - $(chatArea).height();
+            console.log(chatArea.scrollTop);
+
+         },
+
+         updateChat: function(data) {
+            var tiempo = new Date(),
+               horas = tiempo.getHours(),
+               mins = tiempo.getMinutes(),
+               segs = tiempo.getSeconds(),
+               hora = horas + ":" + mins + ":" + segs;
+
+            $("p#data_recieved").append("<br>\r\n" + data.msgr + " - <span style='color:red'>" + hora + "</span>: " + "<span style='color:blue'>" + data.msg + "</span>");
+            $("p#log").html('got message: ' + data.msg);
+
+            var chatArea = document.getElementById('data_recieved');
+            chatArea.scrollTop = chatArea.scrollHeight - $(chatArea).height();
+            console.log(chatArea.scrollTop);
+         }
+      }
+
+      chat.initialize();
+
+   })(jQuery);
+   </script>
+   </body>
+</html>
