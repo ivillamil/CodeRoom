@@ -21,13 +21,13 @@
 		<iframe></iframe>
 	</div>
 
-	<script src="http://192.168.1.84:8000/socket.io/socket.io.js"></script>
+	<script src="http://tiroldesign.classroom.jit.su/socket.io/socket.io.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>	
 	<script src="highlighter/prettify.js"></script>	
 	<script>
 	;(function($){
 
-		socket = io.connect('http://192.168.1.84:8000');
+		socket = io.connect('http://tiroldesign.classroom.jit.su');
 
 		$('.grid').height($(window).height());
 
@@ -74,8 +74,8 @@
 				
 			});*/
 
-			prettyPrint();			
-		});
+			//prettyPrint();			
+		}).on('blur', function(){ prettyPrint(); });
 
 		socket.on('html', function(data){
 			htmlArea.text(data.html);
